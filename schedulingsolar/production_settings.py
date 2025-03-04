@@ -20,12 +20,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-j77ihr15#je!i^)#*7yfz!o842n&)j-50p(&f%+dep0*geq^0h'
+SECRET_KEY = 'django-insecure-j77ihr15#je!i^)#*7yfz!o842n&)j-50p(&f%+dep0*geq^0h' # TODO change
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = True # TODO change
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["schedulingsolar.pythonanywhere.com"]
 
 
 # Application definition
