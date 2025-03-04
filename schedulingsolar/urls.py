@@ -17,9 +17,11 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from . import views
+from . import update_server
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path("", views.home),
-    path("new/", views.new_page)
+    path("new/", views.new_page),
+    path("update_server/", update_server.GithubUpdate.as_view())
 ]
