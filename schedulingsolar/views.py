@@ -9,4 +9,4 @@ def home(request):
 
 
 def page_not_found(request, error_msg):
-    return HttpResponse("404 error")
+    return HttpResponse(error_msg)

@@ -49,7 +49,7 @@ class GithubUpdate(View):
             return page_not_found(request, 'Server update was attempted')
         else:
             data = request.body
-            if is_valid_signature(x_hub_signature, data, "J8x7]AOO^2SJ6i"): # the webjhook token
+            if is_valid_signature(x_hub_signature, data, "J8x7]AOO^2SJ6i"): # the webhook token
 
                 cmd_output = run_cmd()
                 return UpdateServerResponse(cmd_output)
