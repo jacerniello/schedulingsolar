@@ -1,4 +1,5 @@
 from django.shortcuts import render, HttpResponse
+from django.http import Http404
 
 def new_page(request):
     return HttpResponse("This is a new page")
@@ -9,4 +10,4 @@ def home(request):
 
 
 def page_not_found(request, error_msg):
-    return HttpResponse(error_msg)
+    raise Http404("Page not found")
