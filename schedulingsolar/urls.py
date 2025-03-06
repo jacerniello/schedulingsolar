@@ -23,5 +23,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path("", views.home),
     path("new/", views.new_page),
-    path("update_server/", update_server.GithubUpdate.as_view())
+    path("update_server/", update_server.GithubUpdate.as_view()),
+    path("save/", views.save)
 ]

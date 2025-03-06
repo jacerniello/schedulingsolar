@@ -11,10 +11,22 @@
 
 
 {% block content %}
-    <p>Upload Project Data, adjust features, and get accurate time predictions</p>
     <div class = "features_input">
+        <h2>Notes:</h2>
+        <ul>
+            <li>This is a work in progress, we're eventually going to have a cleaner input feature dropdown (so users don't have to scroll).</li>
+            <br>
+            <li>This prototype is also missing a lot of features/functionality.</li>
+            <br>
+            <li>The input form currently does not do useful backend processing</li>
+            <br>
+            <li>There's also a lot of empty space right now and styling doesnt adjust depending on the viewport (TODO)</li>
+            <br>
+        </ul>
+        <hr>
+        <i><p style="text-align:center;">Upload Project Data, adjust features, and get accurate time predictions</p></i>
         <h2>Input Data</h2>
-        <form>
+        <form action="save">
             <div class="input_container">
                 <label for="dist">Drive time (min):</label>
                 <input type="number" id="dist" name="dist">
@@ -144,6 +156,20 @@
                 <input type="submit" value="Save Data">
             </div>
         </form>
+
+        <script>
+            const inputs = document.querySelectorAll('input');
+
+            inputs.forEach(input => {
+                input.addEventListener('input', function() {
+                    if (input.value.trim() !== '') {
+                        input.style.border = '3px solid var(--color1)';
+                    } else {
+                        input.style.border = '3px solid red';
+                    }
+                });
+            });
+        </script>
         
     </div>
 {% endblock %}

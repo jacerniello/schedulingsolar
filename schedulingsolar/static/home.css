@@ -1,20 +1,25 @@
 .features_input_form {
     padding:20px;
-    width:500px;
+    max-width:600px;
 }
 
 .features_input {
-    margin-left:20px;
-    width:510px;
+    width:610px;
+    padding-left:50px;
 }
+
 h2 {
+    color: var(--color2);
     padding-top:20px;
+    font-size:30px;
     text-align:center;
 }
 
 .input_container {
     /* input */
+    max-width:500px;
     padding:10px;
+    margin:auto;
     display:grid;
     grid-template-columns: 300px 100px;
     gap:100px;
@@ -30,8 +35,13 @@ h2 {
     float:right; 
     height:40px;
     font-size:30px;
+    border:3px solid red;
 }
 
 .input_container > input[type="submit"] {
     float:none;
+    margin:auto;
+    width:250px;
+    border:none;
+    grid-column: span 2;
 }
