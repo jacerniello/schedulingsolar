@@ -21,4 +21,4 @@ def save(request):
             value = "NULL"
         response_content += f"({count}) {key}: {value}<br>"
         count += 1
-    return HttpResponse(f"This page currently doesn't do anything, sorry :). But here are your input parameters and values: <br><br>{response_content}")
+    return HttpResponse(f"This page currently doesn't do anything, sorry :). But here are your input parameters and values: <br><br>{response_content}<br> Sample time duration (to be returned): 30 hours")
