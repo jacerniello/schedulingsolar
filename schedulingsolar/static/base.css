@@ -1,0 +1,40 @@
+/* default css */
+
+:root {
+    --color1: rgb(86, 208, 161);
+    --color3: rgb(22, 113, 78);
+    --color2: rgb(108, 145, 244);
+
+}
+
+
+.navbar {
+    color:var(--color3);
+    font-size:20px;
+    display:grid;
+    align-items:center;
+    font-family: Roboto; 
+    border:2px solid black;
+    padding:20px;
+
+    grid-template-columns: 1fr 0.2fr; /* For now, adjust the # of columns as needed */
+    gap: 10px; /* gap between columns */
+    
+}
+
+.navbar a {
+    width:200px;
+    color:var(--color3);
+}
+
+body {
+    font-family: Roboto;
+}
+
+button, input[type="submit"] {
+    background-color: var(--color2);
+    color:white;
+    border:0px;
+    margin-top:20px;
+    border-radius:10px;
+}

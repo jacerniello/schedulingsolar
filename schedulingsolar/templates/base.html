@@ -1,0 +1,18 @@
+<!-- default (base) html -->
+
+<html>
+    <body>
+        <head>
+            <link rel="stylesheet" href="/static/base.css">
+            {% block style_content %}{% endblock %}
+        </head>
+
+        <div class="navbar">
+            <h1>Scheduling Solar</h1>
+            <a href="/">Home page</a>
+        </div>
+        <div class="content">
+            {% block content %}{% endblock %}
+        </div>
+    </body>
+</html>
