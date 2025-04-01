@@ -1,4 +1,4 @@
-/* default css */
+/*
 
 :root {
     --color1: rgb(86, 208, 161);
@@ -17,8 +17,8 @@
     border:2px solid black;
     padding:20px;
 
-    grid-template-columns: 1fr 0.2fr; /* For now, adjust the # of columns as needed */
-    gap: 10px; /* gap between columns */
+    grid-template-columns: 1fr 0.2fr;
+    gap: 10px;
     
 }
 
@@ -37,4 +37,4 @@ button, input[type="submit"] {
     border:0px;
     margin-top:20px;
     border-radius:10px;
-}
+}*/

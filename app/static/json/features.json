@@ -1,0 +1,133 @@
+{
+    "drive_time": {
+        "name": "Drive Time (mins)",
+        "type": "number",
+        "units": "float"
+    },
+    "tilt": {
+        "name": "Tilt (degrees)",
+        "type": "number",
+        "units": "float"
+    },
+    "azimuth": {
+        "name": "Azimuth (degrees)",
+        "type": "number",
+        "units": "float"
+    },
+    "panel_qty": {
+        "name": "Panel Quantity",
+        "type": "number",
+        "units": "float"
+    },
+    "sys_rating": {
+        "name": "System Rating (kW DC)",
+        "type": "number",
+        "units": "float"
+    },
+    "inv_manu": {
+        "name": "Inverter Manufacturer",
+        "type": "text",
+        "units": "string"
+    },
+    "array_type": {
+        "name": "Array Type",
+        "type": "text",
+        "units": "string"
+    },
+    "sqrl_screen": {
+        "name": "Squirrel Screen (Y/N)",
+        "type": "text",
+        "units": "boolean"
+    },
+    "cons_monito": {
+        "name": "Consumption Monitoring (Y/N)",
+        "type": "text",
+        "units": "boolean"
+    },
+    "truss_rafter": {
+        "name": "Truss/Rafter",
+        "type": "text",
+        "units": "string"
+    },
+    "reinforcements": {
+        "name": "Reinforcements (Y/N)",
+        "type": "text",
+        "units": "boolean"
+    },
+    "elec_inspec": {
+        "name": "Rough Electrical Inspection (Y/N)",
+        "type": "text",
+        "units": "boolean"
+    },
+    "intercon_type": {
+        "name": "Interconnection Type",
+        "type": "text",
+        "units": "string"
+    },
+    "module_len": {
+        "name": "Module Length (in)",
+        "type": "number",
+        "units": "float"
+    },
+    "module_width": {
+        "name": "Module Width (in)",
+        "type": "number",
+        "units": "float"
+    },
+    "module_weight": {
+        "name": "Module Weight (lb)",
+        "type": "number",
+        "units": "float"
+    },
+    "array_num": {
+        "name": "Number of Arrays",
+        "type": "number",
+        "units": "float"
+    },
+    "circuit_num": {
+        "name": "Number of Circuits",
+        "type": "number",
+        "units": "float"
+    },
+    "reinforcement_num": {
+        "name": "Number of Reinforcements",
+        "type": "number",
+        "units": "float"
+    },
+    "roof_type": {
+        "name": "Roof Type",
+        "type": "text",
+        "units": "string",
+        "categories": ["flat", "long"]
+    },
+    "attach_type": {
+        "name": "Attachment Type",
+        "type": "text",
+        "units": "string"
+    },
+    "story_num": {
+        "name": "Number of Stories",
+        "type": "numerical",
+        "units": "float"
+    },
+    "season": {
+        "name": "Install Season",
+        "type": "text",
+        "units": "string"
+    },
+    "est_salaried_empl": {
+        "name": "Estimated Number of Salaried Employees on Site",
+        "type": "numerical",
+        "units": "float"
+    },
+    "est_salary_hr": {
+        "name": "Estimated Salary Hours",
+        "type": "numerical",
+        "units": "float"
+    },
+    "est_direct_time": {
+        "name": "Estimated Total Direct Time (hr:min:sec)",
+        "type": "text",
+        "units": "string"
+    }
+}

@@ -1,0 +1,33 @@
+{% load static tailwind_tags %}
+
+<head>
+   {% tailwind_css %}
+</head>
+
+<html>
+    <body class="bg-gray-100 font-sans">
+        <header class="bg-[#1E2D3B] text-white shadow-md py-6">
+            <div class="container mx-auto px-8 flex justify-between items-center">
+                <a href="/" class="flex items-center space-x-4">
+                    <img src="/static/images/logo.png" alt="Logo" class="h-24"> 
+                </a>
+                
+                <nav class="flex space-x-20">
+                    <a href="/input" class="hover:text-blue-300 text-xl transition font-medium">Input Page</a>
+                    <a href="/view" class="hover:text-blue-300 text-xl transition font-medium">View Data</a>
+                    
+
+                    {% if user.is_authenticated %}
+                        <a href="/logout" class="hover:text-red-300 text-xl transition font-medium">Logout</a>
+                    {% else %}
+                        <a href="/login" class="hover:text-green-300 text-xl transition font-medium">Login</a>
+                    {% endif %}
+                </nav>
+            </div>
+        </header>
+
+        <main class="container mx-auto px-8 py-10">
+            {% block content %}{% endblock %}
+        </main>
+    </body>
+</html>

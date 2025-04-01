@@ -1,4 +1,4 @@
-.features_input_form {
+/*.features_input_form {
     padding:20px;
     max-width:600px;
 }
@@ -16,7 +16,6 @@ h2 {
 }
 
 .input_container {
-    /* input */
     max-width:500px;
     padding:10px;
     margin:auto;
@@ -44,4 +43,4 @@ h2 {
     width:250px;
     border:none;
     grid-column: span 2;
-}
+}*/

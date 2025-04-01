@@ -1,3 +1,6 @@
+# This creates a page that github will send a request to after a post request has been sent
+# In short this will update the website
+
 from django.http import HttpResponse
 from django.views import View   
 from django.utils.decorators import method_decorator
