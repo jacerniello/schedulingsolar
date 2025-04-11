@@ -26,7 +26,7 @@ def is_valid_signature(x_hub_signature, data, private_key):
 
 
 def run_cmd():
-    command = 'git clean --force -d -x; git reset --hard; git -C "/home/schedulingsolar/schedulingsolar" pull -v origin main;' # resets local changes and pulls new ones
+    command = 'git clean --force -d -x; git reset --hard; git -C "/home/schedulingsolar/app" pull -v origin main;' # resets local changes and pulls new ones
     cmd_output = subprocess.run(command, shell=True, stdout=subprocess.PIPE, text=True).stdout
     return cmd_output
   
