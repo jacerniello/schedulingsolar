@@ -1,0 +1,110 @@
+
+<!-- Form to add a new field -->
+<div class="mt-10 bg-white p-8 rounded-lg shadow-lg">
+    {% if field_to_edit %}
+
+        <h2 class="text-2xl font-bold text-gray-800 mb-6">Edit Input Field</h2>
+    {% else %}
+        <h2 class="text-2xl font-bold text-gray-800 mb-6">Add a New Field</h2>
+    {% endif %}
+    <form method="POST" action="{% url 'save_input_field' %}" class="space-y-6">
+        {% csrf_token %}
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="space-y-2">
+                <label for="new_field_name" class="text-gray-600 text-sm">Field Name:</label>
+                <input type="text" id="new_field_name" name="new_field_name" class="w-full border rounded-lg p-2" required
+                {% if field_to_edit %}
+                    value = "{{ field_to_edit.verbose_name }}"
+                {% endif %}
+                >
+            </div>
+
+            <div class="space-y-2">
+                <label for="new_field_type" class="text-gray-600 text-sm">Field Type:</label>
+                <select id="new_field_type" name="new_field_type" class="w-full border rounded-lg p-2" required>
+                    <option value="char">Text</option>
+                    <option value="int">Number</option>
+                    <option value="degrees">Degrees</option>
+                    <option value="float">Decimal</option>
+                    <option value="bool">Boolean</option>
+                    <option value="choice">Choice</option>
+                    <option value="datetime">Date/Time</option>
+                </select>
+                <p class="text-gray-600">Default value (NULL) will be stored for existing projects.</p>
+            </div>
+        </div>
+
+        <!-- Choices field with an option to specify or change the choices -->
+        <div id="choices_section" class="space-y-2 hidden">
+            <label for="new_field_choices" class="text-gray-600 text-sm">Choices (Comma separated):</label>
+            <input type="text" id="new_field_choices" name="new_field_choices" class="w-full border rounded-lg p-2" placeholder="Option 1, Option 2, Option 3">
+            <p class="text-gray-600">Input items not in above options will not contribute to time prediction (for just this field).</p>
+        </div>
+        
+
+                  
+        {% if field_to_edit %}
+            <input type="hidden" name="field_id" value="{{ field_to_edit.id }}">
+        {% endif %}
+
+
+        <div class="mt-6 text-center">
+            <button type="submit" class="bg-[#edcd1e] text-[#1E2D3B] font-semibold py-2 px-4 rounded-lg shadow hover:bg-yellow-500 transition duration-200">
+                {% if field_to_edit %}
+                    Save Edits
+                {% else %}
+                    Save Field
+                {% endif %}
+            </button>
+        </div>
+        
+    </form>
+
+    {% if field_to_edit %}
+        <div class="mt-6 text-center">
+            <form method="POST" action="{% url 'save_input_field' %}" class="inline">
+                {% csrf_token %}
+                <input type="hidden" name="field_id" value="{{ field_to_edit.id }}">
+                <input type="hidden" name="delete_field" value="true">
+                <button type="submit" class="bg-red-500 text-white font-semibold py-2 px-4 rounded-lg shadow hover:bg-red-600 transition duration-200">
+                    Delete Field
+                </button>
+            </form>
+        </div>
+    {% endif %}
+    
+</div>
+
+
+<script>
+    // Show the choices input field when "Choice" is selected
+    const fieldTypeSelect = document.getElementById("new_field_type");
+    const choicesSection = document.getElementById("choices_section");
+    const newFieldChoices = document.getElementById("new_field_choices");
+
+    fieldTypeSelect.addEventListener("change", function() {
+        if (fieldTypeSelect.value === "choice") {
+            choicesSection.classList.remove("hidden");
+        } else {
+            choicesSection.classList.add("hidden");
+        }
+    });
+
+    
+    {% if field_to_edit %}
+        for (elem of document.getElementsByTagName("option")) {
+            if (elem.value == "{{ field_to_edit.field_type }}") {
+                elem.selected = true;
+                if (elem.value == "choice") {
+                    choicesSection.classList.remove("hidden");
+                    var choices = {{field_to_edit.choices|safe}};
+                    newFieldChoices.value = choices.join(", ");
+                    console.log("set value!");
+                }
+            }
+        }    
+    {% endif %}
+
+
+</script>

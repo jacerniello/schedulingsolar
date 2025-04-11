@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% load custom_tags %}
+
+{% block content %}
+<div class="bg-gray-100 min-h-screen py-10 px-4">
+    <div class="max-w-6xl mx-auto">
+        {% include 'components/messages.html' with messages=messages %}
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-10">Project Data</h1>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for project in page_obj %}
+            
+            <div class="bg-white shadow-lg rounded-2xl p-6 flex flex-col justify-between">
+                <div>
+                    <h2 class="text-xl font-semibold text-gray-800 mb-2">Project ID: {{ project.project_id }}</h2>
+                    {% for key in project %}
+                        <p class="text-gray-600 text-sm mb-1">{{key}}: {{ project|dict_get:key }}</p>
+                    {% endfor %}
+                    <p class="text-gray-600 text-sm mb-1">...</p>
+                </div>
+                <div class="mt-4">
+                    <a href="/view/{{project.project_id}}" class="block text-center bg-[#edcd1e] text-[#1E2D3B] font-semibold py-2 rounded-lg shadow hover:bg-yellow-500 transition duration-200">
+                        View/Edit
+                    </a>
+                </div>
+            </div>
+            {% empty %}
+            <p class="col-span-full text-center text-gray-600">No projects available.</p>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination controls -->
+        <div class="mt-10 flex justify-center space-x-2">
+            {% if page_obj.has_previous %}
+            <a href="?page=1" class="px-3 py-1 bg-white border rounded-lg shadow hover:bg-gray-100">First</a>
+            <a href="?page={{ page_obj.previous_page_number }}" class="px-3 py-1 bg-white border rounded-lg shadow hover:bg-gray-100">Previous</a>
+            {% endif %}
+
+            <span class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg shadow">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+            </span>
+
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}" class="px-3 py-1 bg-white border rounded-lg shadow hover:bg-gray-100">Next</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}" class="px-3 py-1 bg-white border rounded-lg shadow hover:bg-gray-100">Last</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

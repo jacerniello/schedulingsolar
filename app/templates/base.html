@@ -14,10 +14,13 @@
                 
                 <nav class="flex space-x-20">
                     <a href="/input" class="hover:text-blue-300 text-xl transition font-medium">Input Page</a>
-                    <a href="/view" class="hover:text-blue-300 text-xl transition font-medium">View Data</a>
+                    <a href="/search" class="hover:text-blue-300 text-xl transition font-medium">Search Data</a>
                     
 
                     {% if user.is_authenticated %}
+                        {% if user.is_superuser %}
+                            <a href="/custom-admin" class="hover:text-red-300 text-xl transition font-medium">Admin Portal</a>
+                        {% endif %}
                         <a href="/logout" class="hover:text-red-300 text-xl transition font-medium">Logout</a>
                     {% else %}
                         <a href="/login" class="hover:text-green-300 text-xl transition font-medium">Login</a>

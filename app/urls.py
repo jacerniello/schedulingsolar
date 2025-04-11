@@ -24,8 +24,19 @@ urlpatterns = [
     path("", views.home, name="home"),
     path("input/", views.update, name="input"),
     path("save/", views.save_data),
-    path("view/", views.view_data),
+    path("search/", views.search_data),
+    path("view/<int:project_id>", views.view_data),
     path("edit/", views.edit_data),
+
+
+    path("custom-admin/", views.custom_admin, name="custom_admin"),
+
+    path("save-input-field/", views.save_input_field, name="save_input_field"),
+
+    path("edit-model-type/", views.edit_model_type, name="edit_model_type"),
+    path("analyze-file/", views.analyze_file, name="analyze_file"),
+
+    path("train/", views.train, name="train"),
 
     path("login/", views.login_view, name="login"),
     path("logout/", views.logout_view, name="logout"),

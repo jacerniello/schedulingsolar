@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include 'components/messages.html' with messages=messages %}
+
+<div class="bg-gray-100 min-h-screen py-10 px-4">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-4xl font-bold text-center text-gray-800 mb-12">Admin Settings</h1>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- Card 1 -->
+            <div class="bg-white shadow-lg rounded-2xl p-8 flex flex-col justify-between min-h-[250px]">
+                <div>
+                    <h2 class="text-2xl font-semibold text-gray-800 mb-3">Input Data Fields</h2>
+                    <p class="text-gray-600 text-base">Update how input data is structured and validated.</p>
+                </div>
+                <div class="mt-6">
+                    <a href="/save-input-field" class="block text-center bg-[#edcd1e] text-[#1E2D3B] font-semibold py-3 rounded-lg shadow hover:bg-yellow-500 transition duration-200">
+                        Edit Input Field
+                    </a>
+                </div>
+            </div>
+
+            <div class="bg-white shadow-lg rounded-2xl p-8 flex flex-col justify-between min-h-[250px]">
+                <div>
+                    <h2 class="text-2xl font-semibold text-gray-800 mb-3">Train Model</h2>
+                    <p class="text-gray-600 text-base">Train a model from scratch.</p>
+                </div>
+                <div class="mt-6">
+                    <a href="/train" class="block text-center bg-[#edcd1e] text-[#1E2D3B] font-semibold py-3 rounded-lg shadow hover:bg-yellow-500 transition duration-200">
+                        Train Model
+                    </a>
+                </div>
+            </div>
+
+            <div class="bg-white shadow-lg rounded-2xl p-8 flex flex-col justify-between min-h-[250px]">
+                <div>
+                    <h2 class="text-2xl font-semibold text-gray-800 mb-3">Model Type</h2>
+                    <p class="text-gray-600 text-base">Select or update the model type used.</p>
+                </div>
+                <div class="mt-6">
+                    <a href="/edit-model-type" class="block text-center bg-[#edcd1e] text-[#1E2D3B] font-semibold py-3 rounded-lg shadow hover:bg-yellow-500 transition duration-200">
+                        Edit Model Type  - TODO NOT DONE
+                    </a>
+                </div>
+            </div>
+            
+
+            <div class="bg-white shadow-lg rounded-2xl p-8 flex flex-col justify-between min-h-[250px]">
+                <div>
+                    <h2 class="text-2xl font-semibold text-gray-800 mb-3">Upload File</h2>
+                    <p class="text-gray-600 text-base">Upload a data file. Requirement: Project ID must be the first column, and must be populated in every row.</p>
+                </div>
+                <div class="mt-6">
+                    <form action="/analyze-file/" method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <input type="file" name="data_file" accept=".csv,.xlsx" class="mb-4 block w-full text-sm text-gray-700">
+                        <button type="submit" class="w-full bg-[#edcd1e] text-[#1E2D3B] font-semibold py-3 rounded-lg shadow hover:bg-yellow-500 transition duration-200">
+                            Upload File - TODO NOT DONE
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+                        
+
+            <div class="bg-white shadow-lg rounded-2xl p-8 flex flex-col justify-between min-h-[250px]">
+                <div>
+                    <h2 class="text-2xl font-semibold text-gray-800 mb-3">Access Controls</h2>
+                    <p class="text-gray-600 text-base">Manage who can view or edit different parts of the system.</p>
+                </div>
+                <div class="mt-6">
+                    <a href="/admin/auth/user/" class="block text-center bg-[#edcd1e] text-[#1E2D3B] font-semibold py-3 rounded-lg shadow hover:bg-yellow-500 transition duration-200">
+                        Admin Portal
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

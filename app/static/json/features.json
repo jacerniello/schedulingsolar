@@ -1,4 +1,8 @@
 {
+    "project_id": {
+        "name": "Project ID",
+        "type": "number"
+    },
     "drive_time": {
         "name": "Drive Time (mins)",
         "type": "number",

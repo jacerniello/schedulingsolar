@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include 'components/messages.html' with messages=messages %}
+{% include 'custom_admin/input_field.html' %}
+
+{% if data_fields %}
+<div class="mt-10">
+    <h2 class="text-2xl font-bold text-gray-800 mb-6">Existing Fields</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for field in data_fields %}
+            <div class="bg-white p-4 rounded-lg shadow">
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-700 font-semibold"><b>Name:</b> {{ field.verbose_name }}</span>
+                    <!-- Edit button that links to the edit_input_field view -->
+                    <a href="{% url 'save_input_field' %}?field_id={{ field.id }}" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition">
+                        Edit
+                    </a>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
