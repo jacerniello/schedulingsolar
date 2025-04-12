@@ -118,15 +118,15 @@ def delete_data(request):
 
 @login_required(login_url="/login/")
 def search_data(request):
-    project_objs = Data.objects.all().order_by('-created_at')  # Optional: order newest first
-    project_objs = [project_obj.get_all_field_values(by_dict=False) for project_obj in project_objs]
-    print(project_objs[0])
-    if len(project_objs) == 0:
-        return render(request, "search_data.html", {"page_obj": []})
-    paginator = Paginator(project_objs, 6)  # Show 6 projects per page
+    project_queryset = Data.objects.all().order_by('-created_at')
 
+    # Paginate before any heavy processing
+    paginator = Paginator(project_queryset, 6)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
+
+    # Now apply get_all_field_values only to items on the current page
+    page_obj.object_list = [obj.get_all_field_values(by_dict=False) for obj in page_obj.object_list]
 
     return render(request, "search_data.html", {"page_obj": page_obj})
 
