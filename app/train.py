@@ -1,4 +1,5 @@
-from django.shortcuts import render, HttpResponse
+from django.shortcuts import render, HttpResponse, redirect
+from django.http import JsonResponse
 from app.models import Data, DataField
 from datetime import timedelta
 import pandas as pd
@@ -18,7 +19,8 @@ import joblib
 from django.contrib import messages
 
 class FormattingPipeline:
-    def __init__(self, data):
+    def __init__(self, data=None):
+        if data is None: data = []
         self.data = data
         self.processed = []
         self.category_names = {
@@ -44,7 +46,7 @@ class FormattingPipeline:
     
     def process_data_obj(self, data_obj):
         processed_field_values = {}
-        field_values = data_obj.get_all_field_values()
+        field_values = data_obj.get_all_field_values(by_dict=False)
         for field, value in field_values.items():
             # print(field, value)
             result, field_type = self.process(field, value)
@@ -105,7 +107,10 @@ class FormattingPipeline:
             else:
                 obj = [obj]
             for item in obj:
-                all_degrees[deg_keys[idx]] = float(item)
+                if item:
+                    all_degrees[deg_keys[idx]] = float(item)
+                else:
+                    all_degrees[deg_keys[idx]] = None
                 idx += 1
         else:
             all_degrees[deg_keys[idx]] = float(obj)
@@ -218,10 +223,12 @@ class Model:
         self.pipeline = pipeline
         self.data = self.pipeline.processed
         self.feature_image_path = None
-        print(self.data[0])
         self.feature_types = self.pipeline.category_names
-        print("fff")
         print(self.feature_types)
+        if self.data:
+            self.train()
+    
+    def train(self):
         all_columns = set()
         for row in self.data:
             for item in row:
@@ -248,6 +255,7 @@ class Model:
             exclude_columns=["Total # of Days on Site", "Estimated Total Direct Time", "Estimated # of Salaried Employees on Site", "project_id"]
         )
     
+    
     def build_and_train_pipeline(
         self,
         df: pd.DataFrame,
@@ -267,6 +275,7 @@ class Model:
         df.to_csv("sample.csv")
 
         # Step 3: Separate target
+        df = df.dropna(subset=[target_column])
         y = df[target_column]
         print(y)
         print("zzz")
@@ -388,3 +397,19 @@ def train(request):
         "Average_Overestimation": convert_from_serializable_readout(model.over_estimation),
         "Average_Underestimation": convert_from_serializable_readout(model.under_estimation)
     })
+
+
+def time_estimate(request, project_id=None):
+    pipeline_obj = FormattingPipeline()
+    model = Model(pipeline_obj)
+    model.load("models")
+    try:
+        input_obj = Data.objects.filter(project_id=project_id).last()
+    except:
+        messages.error(request, "Failed to gather time estimate")
+        return redirect("search")
+    processed_data = pipeline_obj.process_data_obj(input_obj)
+    print(processed_data)
+    result = model.predict(processed_data)
+    result = convert_from_serializable_readout(result)
+    return JsonResponse({"result": result})

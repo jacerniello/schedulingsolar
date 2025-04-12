@@ -21,7 +21,6 @@ from .train import *
 # for now just get the data in manually
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-features = json.load(open(BASE_DIR / "app/static/json/features.json", "r"))
 
 
 
@@ -31,49 +30,96 @@ def home(request):
 
 @login_required(login_url="/login/")
 def update(request):
-    print(BASE_DIR / "schedulingsolar/app/static/json/features.json")
-    return render(request, "input.html", {"features": features})
+    project = Data.objects.last().get_all_field_values() # TODO change to something more robust
+
+    for field in project:
+        print(field)
+        if field == "project_id":
+            project[field]['value'] += 1 # iterate by 1 # TODO again change to something more robust
+        else:
+            project[field]['value'] = ""
+
+    return render(request, "input.html", {"project": project})
 
 @login_required(login_url="/login/")
 def save_data(request):
+    if request.method != "POST":
+        messages.error(request, "Invalid request method.")
+        return redirect("input")
+
+    post_data = request.POST.copy()
+    project_id = post_data.get("project_id")
+
+    if not project_id:
+        messages.error(request, "Missing project ID.")
+        return redirect("input")
+
+    try:
+        project_id = int(project_id)
+    except ValueError:
+        messages.error(request, "Invalid project ID.")
+        return redirect("input")
+    
+    try:
+        creation = False
+        data_instance = Data.objects.get(project_id=project_id)
+    except:
+        creation = True
+        # we are creating a new field
+        data_instance = Data()
+        data_instance.project_id = project_id
+        data_instance.save()
+
+    # Remove project_id from POST so it doesn’t get processed as a DataField
+    post_data.pop("project_id")
+
+    for key, raw_value in post_data.items():
+
+        # Try to match the key to a DataField.verbose_name
+        try:
+            field = DataField.objects.get(verbose_name=key, archived=False)
+        except DataField.DoesNotExist:
+            continue  # Silently skip unknown fields
+
+        # Convert the raw_value to the appropriate type
+        # TODO add validation checks
+        # Create or update DataFieldValue
+        if creation:
+            field_value = DataFieldValue(data=data_instance, field=field)
+        else:
+            field_value = DataFieldValue.objects.get(data=data_instance, field=field)
+        field_value.value = raw_value
+        field_value.save()
+
+        # Ensure the ManyToMany relation is up to date
+        data_instance.field_values.add(field_value)
+
+    data_instance.save()
+    messages.success(request, "Saved data successfully!")
+    return redirect(f"/view/{project_id}")
+
+@login_required(login_url="/login/")
+def delete_data(request):
     if request.method == "POST":
-        data = request.POST
+        project_id = request.POST.get("project_id")
+        if not project_id:
+            messages.error(request, "No project ID provided.")
+            return redirect("input")
 
-        named_attrs = {field.name: field for field in Data._meta.fields}  # Store fields with types
+        try:
+            obj = get_object_or_404(Data, project_id=project_id)
+            obj.delete()
+            messages.success(request, f"Project {project_id} deleted successfully.")
+        except Exception as e:
+            messages.error(request, f"Error deleting project: {e}")
 
-        obj = Data()
-        for key, value in data.items():
-            if isinstance(value, str) and len(value) == 0: continue
-            if key in named_attrs:
-                field = named_attrs[key]
-                
-                # Validate data type (if the data is an invalid type, raise this error)
-                # TODO make sure that the input form has validation so this doesn't need to be run
-                expected_type = field.get_internal_type()
-                if expected_type in ["IntegerField", "BigIntegerField"] and not isinstance(value, int):
-                    raise ValidationError(f"Expected an integer for {key}, but got {type(value).__name__}")
-                elif expected_type in ["FloatField", "DecimalField"] and not isinstance(value, (float, int)):
-                    raise ValidationError(f"Expected a float/decimal for {key}, but got {type(value).__name__}")
-                elif expected_type == "BooleanField" and not isinstance(value, bool):
-                    raise ValidationError(f"Expected a boolean for {key}, but got {type(value).__name__}")
-                elif expected_type in ["CharField", "TextField"] and not isinstance(value, str):
-                    raise ValidationError(f"Expected a string for {key}, but got {type(value).__name__}")
-
-                setattr(obj, key, value)
-
-        obj.save()
-        
-        messages.success(request, "Saved data successfully!")
-    else:
-        messages.error(request, "Not a valid input type")
-
-    return redirect("input")
+    return redirect("search")
 
 
 @login_required(login_url="/login/")
 def search_data(request):
     project_objs = Data.objects.all().order_by('-created_at')  # Optional: order newest first
-    project_objs = [project_obj.get_all_field_values() for project_obj in project_objs]
+    project_objs = [project_obj.get_all_field_values(by_dict=False) for project_obj in project_objs]
     print(project_objs[0])
     if len(project_objs) == 0:
         return render(request, "search_data.html", {"page_obj": []})

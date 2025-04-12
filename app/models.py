@@ -69,14 +69,21 @@ class Data(models.Model):
         except DataField.DoesNotExist:
             raise ValueError(f"Field '{field_name}' does not exist.")
     
-    def get_all_field_values(self):
+    def get_all_field_values(self, by_dict=True):
         # Fetching values from DataFieldValue (related fields)
-        related_field_values = {'project_id': self.project_id}
+        if by_dict:
+            related_field_values = {'project_id': {"value": self.project_id, "type": "int"}}
+        else:
+            related_field_values = {'project_id': self.project_id}
+        
         for data_field_value in self.field_values.all():
             field = data_field_value.field
             if not field.archived:  # Ensure we only get active fields
-                related_field_values[field.verbose_name] = data_field_value.value
-
+                if by_dict:
+                    related_field_values[field.verbose_name] = {"value": data_field_value.value, "type": field.field_type, "options": field.choices}
+                else:
+                    related_field_values[field.verbose_name] = data_field_value.value
+                
         # Combine both direct and related field values
         return related_field_values
     

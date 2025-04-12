@@ -23,8 +23,10 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path("", views.home, name="home"),
     path("input/", views.update, name="input"),
+    path("delete/", views.delete_data, name="delete_data"),
+
     path("save/", views.save_data),
-    path("search/", views.search_data),
+    path("search/", views.search_data, name="search"),
     path("view/<int:project_id>", views.view_data),
     path("edit/", views.edit_data),
 
@@ -37,6 +39,7 @@ urlpatterns = [
     path("analyze-file/", views.analyze_file, name="analyze_file"),
 
     path("train/", views.train, name="train"),
+    path("time-estimate/<int:project_id>", views.time_estimate, name="time_estimate"),
 
     path("login/", views.login_view, name="login"),
     path("logout/", views.logout_view, name="logout"),
