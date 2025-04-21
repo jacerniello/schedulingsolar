@@ -88,6 +88,7 @@ class Data(models.Model):
         return related_field_values
     
 """
+# old version of model
 
 class Data(models.Model):
     # Fields

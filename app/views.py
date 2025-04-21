@@ -192,7 +192,7 @@ def validate_superuser(request):
 
 @login_required(login_url="/login/")
 def custom_admin(request):
-    if not validate_superuser:
+    if not validate_superuser(request):
         return redirect("logout")
     return render(request, "custom_admin/custom_admin.html")
 
