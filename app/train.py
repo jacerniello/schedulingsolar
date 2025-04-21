@@ -38,7 +38,7 @@ class FormattingPipeline:
             "float": self.process_float,
             "bool": self.process_bool,
             "choice": self.process_choice,
-            "datetime": self.process_datetime
+            "time": self.process_time
         }
         self.field_lookup = {data_field.verbose_name: data_field for data_field in all_field_types}
         for data_obj in self.data:
@@ -63,7 +63,7 @@ class FormattingPipeline:
         if cat_type == "choice":
             if cat not in self.category_names["categorical"]:
                 self.category_names["categorical"].append(cat)
-        elif cat_type in ['degrees', "int", "float", "datetime"]:
+        elif cat_type in ['degrees', "int", "float", "time"]:
             if cat not in self.category_names["numerical"]:
                 self.category_names["numerical"].append(cat)
         elif cat_type == "bool":
@@ -154,7 +154,7 @@ class FormattingPipeline:
             print("error", final, "|", obj, "|", field, field.choices)'''
         return None
 
-    def process_datetime(self, obj, field):
+    def process_time(self, obj, field):
         new_obj = None
         if isinstance(obj, str):
             test_obj = obj.strip().split(" ")[0]

@@ -9,7 +9,7 @@ class DataField(models.Model):
         ("float", "Float"),
         ("bool", "Boolean"),
         ("choice", "Choice"),
-        ("datetime", "DateTime"),
+        ("time", "Time"),
         # etc.
     ]
 

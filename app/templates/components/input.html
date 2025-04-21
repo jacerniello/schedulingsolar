@@ -5,6 +5,14 @@
         <h2 class="text-2xl font-bold text-gray-800 text-center mb-4">Input Data</h2>
         <p class="text-gray-600 text-center mb-6 italic">Upload Project Data, adjust features, and get accurate time predictions</p>
 
+        <!-- Progress tracker -->
+        <div class="mb-6 bg-gray-50 p-4 rounded-lg">
+            <h3 class="text-lg font-semibold mb-2">Completion Status</h3>
+            <div id="completion-checklist" class="grid grid-cols-2 gap-2">
+                <!-- Items will be populated dynamically based on form fields -->
+            </div>
+        </div>
+
         <div class="mt-4">
             <button
                 id="time-estimate-btn"
@@ -19,61 +27,27 @@
             </div>
         </div>
         
-
-        <form method="POST" action="/save/" class="space-y-4" id="projectForm">
+        <form method="POST" action="/save/" class="space-y-4 mt-4" id="projectForm">
             {% csrf_token %}
+            
+            <!-- First process the project_id field separately -->
             {% for key, data in project.items %}
                 {% if key == "project_id" %}
                     <input type="hidden" name="{{ key }}" value="{{ data.value }}">
-                {% else %}
-
-                    <div>
-                        <label for="{{ key }}" class="block text-gray-700 font-medium mb-1">{{ key }}</label>
-
-                        {% if data.type == "choice" %}
-                            <select name="{{ key }}" id="{{ key }}" class="w-full px-4 py-2 border rounded-lg">
-                                <option value="">-- Select an option --</option>
-                                {% for option in data.options %}
-                                    <option value="{{ option }}" {% if data.value == option %}selected{% endif %}>{{ option }}</option>
-                                {% endfor %}
-                            </select>
-
-
-                        {% elif data.type == "bool" %}
-                            <select name="{{ key }}" id="{{ key }}" class="w-full px-4 py-2 border rounded-lg">
-                                <option value="">-- Select Yes or No --</option>
-                                <option value="Yes" {% if data.value == "Yes" %}selected{% endif %}>Yes</option>
-                                <option value="No" {% if data.value == "No" %}selected{% endif %}>No</option>
-                            </select>
-                        
-
-                        {% elif data.type == "int" or data.type == "float" %}
-                            <input type="number" name="{{ key }}" id="{{ key }}"
-                                step="{% if data.type == 'float' %}0.01{% else %}1{% endif %}"
-                                value="{{ data.value }}"
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg">
-
-                        {% elif data.type == "datetime" %}
-                            <input type="text" name="{{ key }}" id="{{ key }}"
-                                value="{{ data.value }}"
-                                placeholder="e.g. 7 mins"
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg">
-
-                        {% elif data.type == "degrees" %}
-                            <input type="number" name="{{ key }}" id="{{ key }}"
-                                step="0.1"
-                                placeholder="e.g. 30.5"
-                                value="{{ data.value|default_if_none:'' }}"
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg">
-
-                        {% else %}
-                            <input type="text" name="{{ key }}" id="{{ key }}"
-                                value="{{ data.value }}"
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg">
-                        {% endif %}
-                    </div>
                 {% endif %}
             {% endfor %}
+            
+            <!-- All form fields -->
+            <div id="form-fields" class="space-y-4">
+                {% for key, data in project.items %}
+                    {% if key != "project_id" %}
+                        <div class="form-field hidden" id="field-{{ key }}">
+                            <label for="{{ key }}" class="block text-gray-700 font-medium mb-1">{{ key }}</label>
+                            {% include "form_field.html" with key=key data=data %}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
 
             <div>
                 <input type="submit" value="Save Data"
@@ -91,55 +65,169 @@
                 </button>
             </form>
         </div>
-
     </div>
 </div>
 
-<script>
-    // Live validation on input fields
-    document.querySelectorAll('#projectForm input').forEach(input => {
-        input.addEventListener('input', function () {
-            if (this.value.trim() !== '') {
-                this.classList.remove('border-red-500');
-                this.classList.add('border-green-500');
-            } else {
-                this.classList.remove('border-green-500');
-                this.classList.add('border-red-500');
-            }
+<!-- Preview Box (This will show the preview of the field on hover) -->
+<div id="preview-box" class="hidden absolute p-4 bg-gray-200 border border-gray-300 rounded-lg shadow-sm text-gray-800 z-10">
+    <!-- Hover preview content will appear here -->
+</div>
 
-            if (this.type === 'number') {
-                const isValid = !isNaN(this.value) && this.value !== '';
-                this.classList.toggle('border-red-500', !isValid);
-                this.classList.toggle('border-green-500', isValid);
-            }
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const checklist = document.getElementById('completion-checklist');
+        const formFields = document.querySelectorAll('.form-field');
+        const previewBox = document.getElementById('preview-box');
+    
+        // Dynamically create the checklist items
+        formFields.forEach(field => {
+            const item = document.createElement('button');
+            item.className = 'text-sm flex items-center gap-2 text-left hover:bg-gray-100 p-1 rounded w-full transition';
+            item.dataset.target = field.id;
+            item.type = "button";
+    
+            const check = document.createElement('span');
+            check.innerText = '❌';
+            check.className = 'text-red-500';
+    
+            const label = field.querySelector('label');
+            const labelText = label ? label.innerText.trim() : 'Unnamed Field';
+    
+            const text = document.createElement('span');
+            text.innerText = labelText;
+    
+            item.appendChild(check);
+            item.appendChild(text);
+            checklist.appendChild(item);
+    
+            const updateCheck = () => {
+                const input = field.querySelector('input, textarea, select');
+                let value = '';
+                
+                if (input) {
+                    if (input.tagName === 'SELECT') {
+                        value = input.value ? input.options[input.selectedIndex].text : '';
+                    } else {
+                        value = input.value?.trim() || '';
+                    }
+                }
+
+                // Check if value is empty or not, and update the status
+                const isValid = value !== '';
+                check.innerText = isValid ? '✅' : '❌';
+                check.className = isValid ? 'text-green-500' : 'text-red-500';
+            };
+    
+            // Update checklist on user input, change, or focusout
+            const inputs = field.querySelectorAll('input, textarea, select');
+            inputs.forEach(input => {
+                input.addEventListener('input', updateCheck);
+                input.addEventListener('change', updateCheck);
+                input.addEventListener('focusout', updateCheck);
+                updateCheck();  // Initial check when page loads
+            });
+    
+            // Show input value in the preview box on hover
+            item.addEventListener('mouseover', (e) => {
+                const input = field.querySelector('input, textarea, select');
+                let preview = 'No input yet';
+
+                if (input) {
+                    if (input.tagName === 'SELECT') {
+                        preview = input.value ? input.options[input.selectedIndex].text : 'No choice selected';
+                    } else {
+                        preview = input.value ? input.value : 'No input yet';
+                    }
+                }
+
+                previewBox.innerText = `${labelText}: ${preview}`;
+                previewBox.classList.remove('hidden');
+                
+                // Get the mouse position from the event (cursor position)
+                const mouseX = e.clientX;
+                const mouseY = e.clientY;
+                
+                // Take the page scroll into account
+                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+
+                // Adjust the position of the preview box relative to the cursor
+                const boxHeight = previewBox.offsetHeight;
+                const boxWidth = previewBox.offsetWidth;
+
+                let topPosition = mouseY + 10 + scrollTop; // 10px below the cursor
+                let leftPosition = mouseX + 10 + scrollLeft; // 10px to the right of the cursor
+
+                // Ensure the box stays within the viewport (not overflowing)
+                if (topPosition + boxHeight > window.innerHeight + scrollTop) {
+                    topPosition = mouseY - boxHeight - 10 + scrollTop; // Position above the cursor if bottom overflows
+                }
+
+                if (leftPosition + boxWidth > window.innerWidth + scrollLeft) {
+                    leftPosition = mouseX - boxWidth - 10 + scrollLeft; // Position to the left if right overflows
+                }
+
+                previewBox.style.top = `${topPosition}px`;
+                previewBox.style.left = `${leftPosition}px`;
+            });
+    
+            item.addEventListener('mouseleave', () => {
+                previewBox.classList.add('hidden');
+            });
+    
+            // Scroll and reveal the field on checklist item click
+            item.addEventListener('click', () => {
+                // Hide all fields first
+                formFields.forEach(f => f.classList.add('hidden'));
+
+                const targetField = document.getElementById(item.dataset.target);
+                if (targetField) {
+                    targetField.classList.remove('hidden');
+                    targetField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    targetField.querySelector('input, textarea, select').focus();
+                }
+            });
         });
     });
 </script>
 
 
 <script>
-    /* request and load the time estimate after button click */
-    document.getElementById('time-estimate-btn').addEventListener('click', function (e) {
-        e.preventDefault();
+    document.addEventListener("DOMContentLoaded", () => {
+        const form = document.getElementById('projectForm');
 
-        const projectId = this.dataset.projectId;
-        const url = `/time-estimate/${projectId}`;
+        form.addEventListener('submit', function (e) {
+            const visibleFields = Array.from(form.querySelectorAll('.form-field'));
+            let hasData = false;
 
-        fetch(url, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': '{{ csrf_token }}'
+            for (let field of visibleFields) {
+                const input = field.querySelector('input, textarea, select');
+                if (input && input.value.trim() !== '') {
+                    hasData = true;
+                    break;
+                }
             }
-        })
-        .then(response => response.json())
-        .then(data => {
-            const resultBox = document.getElementById('estimate-result');
-            resultBox.innerText = `Estimated Time: ${data.result}`;
-            resultBox.classList.remove('hidden');
-        })
-        .catch(error => {
-            console.error('Error:', error);
+
+            if (!hasData) {
+                e.preventDefault(); // Stop form submission
+
+                // Show a flash message
+                const messageBox = document.createElement('div');
+                messageBox.className = 'bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mt-4';
+                messageBox.innerHTML = `
+                    <strong class="font-bold">Error:</strong>
+                    <span class="block sm:inline"> You can't save a model with no data.</span>
+                `;
+
+                const formContainer = form.closest('.bg-white');
+                formContainer.insertBefore(messageBox, formContainer.firstChild);
+
+                // Remove old messages if present
+                const existing = formContainer.querySelectorAll('.bg-red-100');
+                if (existing.length > 1) {
+                    existing[1].remove();
+                }
+            }
         });
     });
 </script>

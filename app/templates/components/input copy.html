@@ -1,0 +1,188 @@
+{% load custom_tags %}
+{% include 'components/messages.html' with messages=messages %}
+<div class="flex justify-center items-center min-h-screen bg-gray-100 p-6">
+    <div class="bg-white shadow-lg rounded-2xl p-8 w-full max-w-lg">
+        <h2 class="text-2xl font-bold text-gray-800 text-center mb-4">Input Data</h2>
+        <p class="text-gray-600 text-center mb-6 italic">Upload Project Data, adjust features, and get accurate time predictions</p>
+
+        <div class="mt-4">
+            <button
+                id="time-estimate-btn"
+                data-project-id="{{ project.project_id.value }}"
+                class="w-full bg-blue-500 text-white font-semibold py-2 rounded-lg shadow-md hover:bg-blue-600 transition duration-200 cursor-pointer">
+                View Time Estimate
+            </button>
+        
+            <!-- Result box (initially hidden) -->
+            <div id="estimate-result" class="mt-4 hidden p-4 bg-gray-100 border border-gray-300 rounded-lg shadow-sm text-gray-800">
+                <!-- Time estimate will be inserted here -->
+            </div>
+        </div>
+        
+
+        <form method="POST" action="/save/" class="space-y-4" id="projectForm">
+            {% csrf_token %}
+            {% for key, data in project.items %}
+                {% if key == "project_id" %}
+                    <input type="hidden" name="{{ key }}" value="{{ data.value }}">
+                {% else %}
+                    <div>
+                        <label for="{{ key }}" class="block text-gray-700 font-medium mb-1">{{ key }}</label>
+
+                        {% if data.type == "choice" %}
+                            <select name="{{ key }}" id="{{ key }}" class="w-full px-4 py-2 border rounded-lg">
+                                <option value="">-- Select an option --</option>
+                                {% for option in data.options %}
+                                    <option value="{{ option }}" {% if data.value == option %}selected{% endif %}>{{ option }}</option>
+                                {% endfor %}
+                            </select>
+
+                        {% elif data.type == "bool" %}
+                            <select name="{{ key }}" id="{{ key }}" class="w-full px-4 py-2 border rounded-lg">
+                                <option value="">-- Select Yes or No --</option>
+                                <option value="Yes" {% if data.value == "Yes" %}selected{% endif %}>Yes</option>
+                                <option value="No" {% if data.value == "No" %}selected{% endif %}>No</option>
+                            </select>
+
+                        {% elif data.type == "int" %}
+                            <input type="number" name="{{ key }}" id="{{ key }}"
+                                step="1" min="0"
+                                value="{{ data.value }}"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                                placeholder="Enter a number"
+                                >
+
+                        {% elif data.type == "float" %}
+                            <input type="number" name="{{ key }}" id="{{ key }}"
+                                step="any"
+                                value="{{ data.value }}"
+                                placeholder="Enter a floating point number (e.g., 5.54)"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+
+                        {% elif data.type == "time" %}
+                            <input type="text" name="{{ key }}" id="{{ key }}"
+                                value="{{ data.value }}"
+                                placeholder="e.g. 2 days 3 hours 15 minutes"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg timeField"
+                                pattern="^(\d+\s*days?\s*)?(\d+\s*hours?\s*)?(\d+\s*minutes?)?$"
+                                title="Please enter time in the format: 'X days Y hours Z minutes' (optional parts are allowed).">
+
+                        {% elif data.type == "degrees" %}
+                            <input type="number" name="{{ key }}" id="{{ key }}"
+                                step="0.1"
+                                placeholder="e.g. 30.5"
+                                value="{{ data.value|default_if_none:'' }}"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+
+                        {% else %}
+                            <input type="text" name="{{ key }}" id="{{ key }}"
+                                value="{{ data.value }}"
+                                placeholder="Text, not used by the model"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                        {% endif %}
+                    </div>
+                {% endif %}
+            {% endfor %}
+
+            <div>
+                <input type="submit" value="Save Data"
+                    class="w-full bg-[#edcd1e] text-[#1E2D3B] font-semibold py-2 rounded-lg shadow-md hover:bg-[#f2d63f] transition duration-200 cursor-pointer">
+            </div>
+        </form>
+
+        <div class="mt-10">
+            <form method="POST" action="/delete/" onsubmit="return confirm('Are you sure you want to delete this project?');">
+                {% csrf_token %}
+                <input type="hidden" name="project_id" value="{{ project.project_id.value }}">
+                <button type="submit"
+                    class="w-full bg-red-500 text-white font-semibold py-2 rounded-lg shadow-md hover:bg-red-600 transition duration-200 cursor-pointer">
+                    Delete Project
+                </button>
+            </form>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    // Live validation on input fields and selects
+    document.querySelectorAll('#projectForm input, #projectForm select').forEach(input => {
+        input.addEventListener('input', function () {
+            if (this.value.trim() !== '') {
+                this.classList.remove('border-red-500');
+                this.classList.add('border-green-500');
+            } else {
+                this.classList.remove('border-green-500');
+                this.classList.add('border-red-500');
+            }
+
+            if (this.type === 'number') {
+                const isValid = !isNaN(this.value) && this.value !== '';
+                this.classList.toggle('border-red-500', !isValid);
+                this.classList.toggle('border-green-500', isValid);
+            }
+
+            if (this.type === 'text' && this.id.includes('time')) {
+                const timePattern = /^(\d+\s*days?\s*)?(\d+\s*hours?\s*)?(\d+\s*minutes?)?$/;
+                const isValid = timePattern.test(this.value);
+                this.classList.toggle('border-red-500', !isValid);
+                this.classList.toggle('border-green-500', isValid);
+            }
+        });
+    });
+
+    /* request and load the time estimate after button click */
+    document.getElementById('time-estimate-btn').addEventListener('click', function (e) {
+        e.preventDefault();
+
+        const projectId = this.dataset.projectId;
+        const url = `/time-estimate/${projectId}`;
+
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            const resultBox = document.getElementById('estimate-result');
+            resultBox.innerText = `Estimated Time: ${data.result}`;
+            resultBox.classList.remove('hidden');
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    });
+
+    // JavaScript validation for integer fields
+    document.getElementById('projectForm').addEventListener('submit', function (e) {
+        const intInputs = document.querySelectorAll('input[type="number"][step="1"]');  // Target integer fields
+
+        intInputs.forEach(input => {
+            const value = input.value;
+            if (!Number.isInteger(Number(value))) {
+                e.preventDefault();  // Prevent form submission
+                alert(`Please enter a valid integer for the field: "${input.id}"`);
+                input.focus();  // Focus on the invalid field
+            }
+        });
+    });
+
+    document.querySelectorAll('.timeField').forEach(input => {  // Target all inputs that have 'time' in their name attribute
+        input.addEventListener('blur', function () {
+            const timePattern = /^(\d+\s*days?\s*)?(\d+\s*hours?\s*)?(\d+\s*minutes?)?$/;
+            const isValidTime = timePattern.test(this.value.trim());
+            this.reportValidity();
+            if (isValidTime) {
+                this.classList.remove('border-red-500');
+                this.classList.add('border-green-500');
+            } else {
+                this.classList.remove('border-green-500');
+                this.classList.add('border-red-500');
+            }
+        });
+    });
+
+</script>
