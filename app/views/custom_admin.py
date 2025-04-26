@@ -146,8 +146,10 @@ def convert_to_serializable(value):
     return value
 
 
-from django.contrib.auth.decorators import login_required
+
+
 from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
 import pandas as pd
 import tempfile
 import os
@@ -157,19 +159,16 @@ def analyze_file(request):
     if not request.user.is_superuser:
         return redirect("logout")
 
-    if request.method == 'POST' and request.FILES.get('data_file'):
+    if request.method == 'POST' and 'data_file' in request.FILES:
         uploaded_file = request.FILES['data_file']
-
-        # Save uploaded file to temp path
-        temp_dir = tempfile.gettempdir()
-        temp_path = os.path.join(temp_dir, uploaded_file.name)
+        temp_path = os.path.join(tempfile.gettempdir(), uploaded_file.name)
 
         with open(temp_path, 'wb+') as destination:
             for chunk in uploaded_file.chunks():
                 destination.write(chunk)
 
-        try:
-            # Load DataFrame
+
+            # Load file into pandas
             if uploaded_file.name.endswith('.csv'):
                 df = pd.read_csv(temp_path)
             elif uploaded_file.name.endswith('.xlsx'):
@@ -179,39 +178,51 @@ def analyze_file(request):
                     'error': 'Unsupported file type.'
                 })
 
-            df = df.fillna("nan")
+            df.fillna(value="nan", inplace=True)
             columns = df.columns.tolist()
             rows = df.values.tolist()
             readout = ""
 
+            # Column -> DataField mapping
             accepted_fields = list(DataField.objects.all())
-            col_assoc = {
-                col: next((f for f in accepted_fields if f.check_reduced(col)), None)
-                for col in columns if col != 'nan'
-            }
-            col_assoc = {k: v for k, v in col_assoc.items() if v}
-
+            col_assoc = {}
+            for i in range(len(columns)):
+                column = columns[i]
+                if column not in ['nan']:
+                    is_bad = True
+                    for field in accepted_fields:
+                        if field.check_reduced(column):
+                            col_assoc[column] = field
+                            is_bad = False
+                    print("bad", is_bad, column)
+            print(col_assoc)
             project_ids = [row[0] for row in rows]
 
             # Delete old projects
-            old_projects = Project.objects.filter(project_id__in=project_ids)
+            old_projects = list(Project.objects.filter(project_id__in=project_ids))
             deleted_map = {p.project_id for p in old_projects}
-            old_projects.delete()
-
-            if deleted_map:
+            if old_projects:
+                Project.objects.filter(id__in=[p.id for p in old_projects]).delete()
                 readout += f"Deleted {len(deleted_map)} existing projects.<br>"
 
-            # Create and fetch new projects
+            # Create new projects
             Project.objects.bulk_create([Project(project_id=pid) for pid in project_ids])
-            projects = {p.project_id: p for p in Project.objects.filter(project_id__in=project_ids)}
 
-            # Track values per project
+            # Re-fetch projects (bulk_create doesn't return instances with IDs)
+            projects = {
+                p.project_id: p for p in Project.objects.filter(project_id__in=project_ids)
+            }
+
+            # Build DataFieldValue objects
             all_values = []
             project_to_values = {pid: [] for pid in project_ids}
 
-            for row in rows:
+            for j, row in enumerate(rows):
                 project_id = row[0]
                 project = projects.get(project_id)
+                if not project:
+                    continue
+
                 if project_id in deleted_map:
                     readout += f"<b>Created project {project_id}</b><br>"
 
@@ -223,10 +234,10 @@ def analyze_file(request):
                         all_values.append(dfv)
                         project_to_values[project_id].append(dfv)
 
-            # Save all values
+            # Save all field values
             DataFieldValue.objects.bulk_create(all_values)
 
-            # Set reverse M2M relationships
+            # Set reverse M2M
             for pid, values in project_to_values.items():
                 project = projects[pid]
                 project.field_values.set(values)
@@ -236,7 +247,7 @@ def analyze_file(request):
                 'readout': f'Readout: {readout}'
             })
 
-        except Exception as e:
-            return render(request, 'custom_admin/analyze.html', {'error': str(e)})
 
-    return render(request, 'custom_admin/analyze.html', {'error': 'No file uploaded.'})
+    return render(request, 'custom_admin/analyze.html', {
+        'error': 'No file uploaded.'
+    })
