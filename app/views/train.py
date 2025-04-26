@@ -41,7 +41,7 @@ class FormattingPipeline:
         for data_obj in self.data:
             processed_result = self.process_data_obj(data_obj)
             self.processed.append(processed_result)
-            open("new.txt", "a").write(str(processed_result) + "\n\n\n")
+            # open("new.txt", "a").write(str(processed_result) + "\n\n\n")
 
     def process_data_obj(self, data_obj):
         processed_field_values = {}
