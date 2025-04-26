@@ -33,7 +33,7 @@
                 </div>
             </div>
 
-            <div class="bg-white shadow-lg rounded-2xl p-8 flex flex-col justify-between min-h-[250px]">
+            <!--<div class="bg-white shadow-lg rounded-2xl p-8 flex flex-col justify-between min-h-[250px]">
                 <div>
                     <h2 class="text-2xl font-semibold text-gray-800 mb-3">Model Type</h2>
                     <p class="text-gray-600 text-base">Select or update the model type used.</p>
@@ -43,7 +43,7 @@
                         Edit Model Type  - TODO NOT DONE
                     </a>
                 </div>
-            </div>
+            </div>-->
             
 
             <div class="bg-white shadow-lg rounded-2xl p-8 flex flex-col justify-between min-h-[250px]">
@@ -54,15 +54,14 @@
                 <div class="mt-6">
                     <form action="/analyze-file/" method="POST" enctype="multipart/form-data">
                         {% csrf_token %}
-                        <input type="file" name="data_file" accept=".csv,.xlsx" class="mb-4 block w-full text-sm text-gray-700">
+                        <input type="file" name="data_file" accept=".csv,.xlsx" class="mb-4 block w-full text-sm text-gray-700" required>
                         <button type="submit" class="w-full bg-[#edcd1e] text-[#1E2D3B] font-semibold py-3 rounded-lg shadow hover:bg-yellow-500 transition duration-200">
-                            Upload File - TODO NOT DONE
+                            Upload File
                         </button>
                     </form>
                 </div>
             </div>
 
-                        
 
             <div class="bg-white shadow-lg rounded-2xl p-8 flex flex-col justify-between min-h-[250px]">
                 <div>

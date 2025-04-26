@@ -11,17 +11,24 @@
         <option value="true" {% if data.value == "true" or data.value == True %}selected{% endif %}>Yes</option>
         <option value="false" {% if data.value == "false" or data.value == False %}selected{% endif %}>No</option>
     </select>
-{% elif data.type == "int" or data.type == "float" or data.type == "degrees" %}
+{% elif data.type == "int" or data.type == "float" %}
     <input type="number" name="{{ key }}" id="{{ key }}" value="{{ data.value|default_if_none:'' }}"
         class="w-full px-4 py-2 border border-gray-300 rounded-lg required-field"
         {% if data.type == "int" %}step="1"{% elif data.type == "degrees" %}step="0.1"{% else %}step="any"{% endif %}
         placeholder="Enter a value"
         {% if data.required %}required{% endif %}>
+{% elif data.type == "degrees" %}
+    <input type="text" name="{{ key }}" id="{{ key }}" value="{{ data.value|default_if_none:'' }}"
+        class="w-full px-4 py-2 border border-gray-300 rounded-lg required-field"
+        {% if data.type == "int" %}step="1"{% elif data.type == "degrees" %}step="0.1"{% else %}step="any"{% endif %}
+        placeholder="Enter a value"
+        pattern="^\d+(\.\d+)?(\/\d+(\.\d+)?)*$"
+        {% if data.required %}required{% endif %}>
 {% elif data.type == "time" %}
     <input type="text" name="{{ key }}" id="{{ key }}" value="{{ data.value|default_if_none:'' }}"
         class="w-full px-4 py-2 border border-gray-300 rounded-lg required-field timeField"
         placeholder="e.g. 2 days 3 hours 15 minutes"
-        pattern="^(\d+\s*days?)?\s*(\d+\s*hours?)?\s*(\d+\s*minutes?)?$"
+        pattern="^(\d+\s*days)?\s*(\d+\s*hours)?\s*(\d+\s*minutes)?$"
         {% if data.required %}required{% endif %}>
 {% else %}
     <input type="text" name="{{ key }}" id="{{ key }}" value="{{ data.value|default_if_none:'' }}"

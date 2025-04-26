@@ -1,1 +1,1 @@
-These are test files, they aren't actually used (except for read_2.0.py)
+These are test files, they aren't actually used by the site (except for read_2.0.py)

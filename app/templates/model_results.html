@@ -4,7 +4,7 @@
 {% include 'components/messages.html' with messages=messages %}
 
 <!-- Model Results Section -->
-<div class="max-w-3xl mx-auto p-6 bg-white shadow-lg rounded-lg mb-8 mt-10">
+<div class="max-w-3xl mx-auto p-6 bg-white shadow-lg rounded-lg mb-8 mt-10" id="contentToDownload">
     <h2 class="text-2xl font-semibold text-gray-800 mb-6">Model Results</h2>
     
     <div class="space-y-4">
@@ -21,11 +21,25 @@
         </div>
 
         <!-- Underestimation -->
-        <div class="flex justify-between items-center pb-3">
-            <span class="text-gray-700 font-medium">Averave Under-estimation (when under):</span>
+        <div class="flex justify-between items-center border-b  pb-3">
+            <span class="text-gray-700 font-medium">Average Under-estimation (when under):</span>
             <span class="text-red-600 font-bold">{{ Average_Underestimation }}</span>
         </div>
+        
+        <!-- Percent Error -->
+        <div class="flex justify-between items-center pb-3">
+            <span class="text-gray-700 font-medium">Average percent Error:</span>
+            <span class="text-red-600 font-bold">{{ Percent_Error }}%</span>
+        </div>
     </div>
+
+</div>
+</div>
+
+<!-- Comparison Section -->
+<h1 class="text-3xl font-bold text-center text-gray-800 mb-10">Comparison Graph</h1>
+<div class="flex justify-center mb-8">
+    <img src="/{{ comparison_image_path }}" alt="Compairson Plot" class="rounded-lg shadow-lg">
 </div>
 
 <!-- Feature Importance Section -->
@@ -33,5 +47,7 @@
 <div class="flex justify-center mb-8">
     <img src="/{{ image_path }}" alt="Feature Importance Plot" class="rounded-lg shadow-lg">
 </div>
+
+
 
 {% endblock %}

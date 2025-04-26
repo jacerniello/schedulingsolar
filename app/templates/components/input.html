@@ -41,7 +41,7 @@
             <div id="form-fields" class="space-y-4">
                 {% for key, data in project.items %}
                     {% if key != "project_id" %}
-                        <div class="form-field hidden" id="field-{{ key }}">
+                        <div class="form-field hidden" name="field-{{ key }}">
                             <label for="{{ key }}" class="block text-gray-700 font-medium mb-1">{{ key }}</label>
                             {% include "form_field.html" with key=key data=data %}
                         </div>
@@ -74,6 +74,64 @@
 </div>
 
 <script>
+    function validateInput() {
+        const inputs = document.querySelectorAll("input[pattern]");
+    
+        inputs.forEach(input => {
+            const pattern = new RegExp(input.getAttribute("pattern"));
+            console.log(input)
+            const key = input.getAttribute("name");
+            console.log(key);
+            const errorEl = document.getElementById(`${key}-error`);
+    
+            input.addEventListener("blur", function () {
+                validateSpecific(input, pattern, errorEl, key);
+            });
+            console.log("ff");
+            console.log(input);
+            validateSpecific(input, pattern, errorEl, key);
+        });
+    }
+    
+    function validateSpecific(input, pattern, errorEl, key) {
+        const value = input.value.trim();
+        const isValid = pattern.test(value);
+
+        if (value && !isValid) {
+            errorEl?.classList.remove("hidden");
+            input.classList.add("border-red-500");
+
+            // Update checklist ❌ with error icon
+            console.log("dd" + key)
+            const checklistBtn = document.querySelector(`[data-target="field-${key}"]`);
+            console.log("mm");
+            console.log(checklistBtn)
+            if (checklistBtn) {
+                const icon = checklistBtn.querySelector("span");
+                console.log(icon);
+                icon.innerText = "⚠️";
+                icon.className = "text-yellow-500";
+            }
+
+        } else {
+            errorEl?.classList.add("hidden");
+            input.classList.remove("border-red-500");
+
+            // Restore ✅ or ❌ depending on whether field is filled
+            const checklistBtn = document.querySelector(`[data-target="field-${key}"]`);
+            if (checklistBtn) {
+                const icon = checklistBtn.querySelector("span");
+                if (value === "") {
+                    icon.innerText = "❌";
+                    icon.className = "text-red-500";
+                } else {
+                    icon.innerText = "✅";
+                    icon.className = "text-green-500";
+                }
+            }
+        }
+    }
+
     document.addEventListener("DOMContentLoaded", () => {
         const checklist = document.getElementById('completion-checklist');
         const formFields = document.querySelectorAll('.form-field');
@@ -83,7 +141,8 @@
         formFields.forEach(field => {
             const item = document.createElement('button');
             item.className = 'text-sm flex items-center gap-2 text-left hover:bg-gray-100 p-1 rounded w-full transition';
-            item.dataset.target = field.id;
+            console.log(field.getAttribute("name"));
+            item.dataset.target = field.getAttribute("name");
             item.type = "button";
     
             const check = document.createElement('span');
@@ -111,11 +170,13 @@
                         value = input.value?.trim() || '';
                     }
                 }
+                if (check.className != "text-yellow-500") {
+                    // Check if value is empty or not, and update the status
+                    const isValid = value !== '';
+                    check.innerText = isValid ? '✅' : '❌';
+                    check.className = isValid ? 'text-green-500' : 'text-red-500';
+                }
 
-                // Check if value is empty or not, and update the status
-                const isValid = value !== '';
-                check.innerText = isValid ? '✅' : '❌';
-                check.className = isValid ? 'text-green-500' : 'text-red-500';
             };
     
             // Update checklist on user input, change, or focusout
@@ -179,21 +240,19 @@
             item.addEventListener('click', () => {
                 // Hide all fields first
                 formFields.forEach(f => f.classList.add('hidden'));
-
-                const targetField = document.getElementById(item.dataset.target);
+                console.log(item.dataset.target)
+                var targetField = document.getElementsByName(item.dataset.target);
+                console.log(targetField);
                 if (targetField) {
+                    targetField = targetField[0];
                     targetField.classList.remove('hidden');
                     targetField.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     targetField.querySelector('input, textarea, select').focus();
                 }
             });
         });
-    });
-</script>
 
-
-<script>
-    document.addEventListener("DOMContentLoaded", () => {
+        <!--form submission-->
         const form = document.getElementById('projectForm');
 
         form.addEventListener('submit', function (e) {
@@ -216,7 +275,7 @@
                 messageBox.className = 'bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mt-4';
                 messageBox.innerHTML = `
                     <strong class="font-bold">Error:</strong>
-                    <span class="block sm:inline"> You can't save a model with no data.</span>
+                    <span class="block sm:inline"> You can't save a project with no data.</span>
                 `;
 
                 const formContainer = form.closest('.bg-white');
@@ -229,5 +288,33 @@
                 }
             }
         });
+        
+        validateInput();
     });
-</script>
+
+    document.getElementById('time-estimate-btn').addEventListener('click', function (e) {
+        e.preventDefault();
+
+        const projectId = this.dataset.projectId;
+        const url = `/time-estimate/${projectId}`;
+
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            const resultBox = document.getElementById('estimate-result');
+            resultBox.innerText = `Estimated Time: ${data.result}`;
+            resultBox.classList.remove('hidden');
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    });
+
+    </script>
+    

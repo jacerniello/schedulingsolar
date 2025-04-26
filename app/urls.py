@@ -16,8 +16,8 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from . import views
-from . import update_server
+import app.views as views
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -43,6 +43,5 @@ urlpatterns = [
 
     path("login/", views.login_view, name="login"),
     path("logout/", views.logout_view, name="logout"),
-    path("update_server/", update_server.GithubUpdate.as_view()),
-    path("__reload__/", include("django_browser_reload.urls")),
+    path("__reload__/", include("django_browser_reload.urls"))
 ]

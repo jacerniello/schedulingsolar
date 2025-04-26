@@ -32,9 +32,9 @@ class DataField(models.Model):
 
 
 class DataFieldValue(models.Model):
-    data = models.ForeignKey("Data", on_delete=models.CASCADE, related_name="data_field_values")
+    data = models.ForeignKey("Project", on_delete=models.CASCADE, related_name="data_field_values")
     field = models.ForeignKey(DataField, on_delete=models.CASCADE)
-    value = models.JSONField()
+    value = models.JSONField(null=True)
 
     def save(self, *args, **kwargs):
         # Prevent saving if field is archived
@@ -43,7 +43,7 @@ class DataFieldValue(models.Model):
         super().save(*args, **kwargs)
 
 
-class Data(models.Model):
+class Project(models.Model):
     project_id = models.IntegerField(unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
     # Change related_name to avoid conflict
