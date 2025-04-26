@@ -146,85 +146,95 @@ def convert_to_serializable(value):
     return value
 
 
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
+import pandas as pd
+import tempfile
+import os
 
 @login_required(login_url="/login/")
 def analyze_file(request):
-    # TODO FIX FIX FIX FIX FIX!!!!!!!!!!!
-    if not validate_superuser:
+    if not request.user.is_superuser:
         return redirect("logout")
-    
-    if request.method == 'POST' and request.FILES['data_file']:
+
+    if request.method == 'POST' and request.FILES.get('data_file'):
         uploaded_file = request.FILES['data_file']
-        
-        # Save to temp dir
+
+        # Save uploaded file to temp path
         temp_dir = tempfile.gettempdir()
         temp_path = os.path.join(temp_dir, uploaded_file.name)
-        
+
         with open(temp_path, 'wb+') as destination:
             for chunk in uploaded_file.chunks():
                 destination.write(chunk)
-        
-        # Read the file using pandas
+
         try:
+            # Load DataFrame
             if uploaded_file.name.endswith('.csv'):
                 df = pd.read_csv(temp_path)
             elif uploaded_file.name.endswith('.xlsx'):
                 df = pd.read_excel(temp_path)
             else:
-                return render(request, 'analyze.html', {
+                return render(request, 'custom_admin/analyze.html', {
                     'error': 'Unsupported file type.'
                 })
-    
 
-            df = df.fillna(value="nan")
-            columns = df.columns # first row is columns
+            df = df.fillna("nan")
+            columns = df.columns.tolist()
             rows = df.values.tolist()
-
-            accepted_fields = DataField.objects.all()
-
-            col_assoc = {}
-            for i in range(len(columns)):
-                column = columns[i]
-                if column not in ['nan']:
-                    is_bad = True
-                    for field in accepted_fields:
-                        if field.check_reduced(column):
-                            col_assoc[column] = field
-                            is_bad = False
-                    print("bad", is_bad, column)
-
-
             readout = ""
-            for j in range(len(rows)):
-                row = rows[j]
+
+            accepted_fields = list(DataField.objects.all())
+            col_assoc = {
+                col: next((f for f in accepted_fields if f.check_reduced(col)), None)
+                for col in columns if col != 'nan'
+            }
+            col_assoc = {k: v for k, v in col_assoc.items() if v}
+
+            project_ids = [row[0] for row in rows]
+
+            # Delete old projects
+            old_projects = Project.objects.filter(project_id__in=project_ids)
+            deleted_map = {p.project_id for p in old_projects}
+            old_projects.delete()
+
+            if deleted_map:
+                readout += f"Deleted {len(deleted_map)} existing projects.<br>"
+
+            # Create and fetch new projects
+            Project.objects.bulk_create([Project(project_id=pid) for pid in project_ids])
+            projects = {p.project_id: p for p in Project.objects.filter(project_id__in=project_ids)}
+
+            # Track values per project
+            all_values = []
+            project_to_values = {pid: [] for pid in project_ids}
+
+            for row in rows:
                 project_id = row[0]
+                project = projects.get(project_id)
+                if project_id in deleted_map:
+                    readout += f"<b>Created project {project_id}</b><br>"
 
-                old_data = Project.objects.filter(project_id=project_id)
-                if old_data.exists():
-                    # delete old one 
-                    readout += f"Deleted old project {j+1}<br><b>Created project {project_id}</b><br>"
-                    print("deleted")
-                    res = old_data.first()
-                    res.delete()
-                
-                data_obj = Project(project_id=project_id)
-                data_obj.save()
-                vals = []
-                for i in range(len(columns)):
-                    column_name = columns[i];
-                    if column_name in col_assoc:
-                        assoc_field = col_assoc[column_name]
-                        raw_value = row[i]
-                        serializable_value = convert_to_serializable(raw_value)
-                        
-                        val = DataFieldValue(data=data_obj, field=assoc_field, value=serializable_value)
-                        val.save()
-                        vals.append(val)
-                
-                data_obj.field_values.set(vals)
-                data_obj.save()
+                for i, column in enumerate(columns):
+                    if column in col_assoc:
+                        field = col_assoc[column]
+                        value = convert_to_serializable(row[i])
+                        dfv = DataFieldValue(data=project, field=field, value=value)
+                        all_values.append(dfv)
+                        project_to_values[project_id].append(dfv)
 
-            return render(request, 'custom_admin/analyze.html', {'analysis': f'Successfully saved!', 'readout': f'Readout: {readout}'})
+            # Save all values
+            DataFieldValue.objects.bulk_create(all_values)
+
+            # Set reverse M2M relationships
+            for pid, values in project_to_values.items():
+                project = projects[pid]
+                project.field_values.set(values)
+
+            return render(request, 'custom_admin/analyze.html', {
+                'analysis': 'Successfully saved!',
+                'readout': f'Readout: {readout}'
+            })
 
         except Exception as e:
             return render(request, 'custom_admin/analyze.html', {'error': str(e)})

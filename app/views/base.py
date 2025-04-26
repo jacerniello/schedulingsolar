@@ -109,7 +109,6 @@ def delete_data(request):
 @login_required(login_url="/login/")
 def search_data(request):
     project_queryset = Project.objects.all().order_by('-created_at')
-
     # Paginate before any heavy processing
     paginator = Paginator(project_queryset, 6)
     page_number = request.GET.get('page')
